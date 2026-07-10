@@ -6,11 +6,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ============================= PRELOADER ============================= */
   var isWindowLoaded = document.readyState === 'complete';
+  var minDelayElapsed = false;
+  var readyToComplete = false;
+
+  function checkReadyToComplete() {
+    if (isWindowLoaded && minDelayElapsed) {
+      readyToComplete = true;
+    }
+  }
+
   if (!isWindowLoaded) {
     window.addEventListener('load', function () {
       isWindowLoaded = true;
+      checkReadyToComplete();
     });
+  } else {
+    checkReadyToComplete();
   }
+
+  setTimeout(function () {
+    minDelayElapsed = true;
+    checkReadyToComplete();
+  }, 2000); // 1.8-second minimum delay
 
   var progressFill = document.getElementById('preloaderProgressFill');
   var progressPercent = document.getElementById('preloaderPercentage');
@@ -22,12 +39,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (currentProgress < 100) {
       if (currentProgress < 99) {
         var increment = Math.max(0.4, (100 - currentProgress) * 0.035);
-        if (isWindowLoaded) {
+        if (readyToComplete) {
           increment = Math.max(1.8, (100 - currentProgress) * 0.12);
         }
         currentProgress += increment;
         if (currentProgress > 99) currentProgress = 99;
-      } else if (isWindowLoaded) {
+      } else if (readyToComplete) {
         currentProgress = 100;
       }
 
@@ -80,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ============================= NAV: active link on scroll ============================= */
   var navAnchors = navLinksEl.querySelectorAll('a');
-  var navSectionIds = ['home', 'about', 'content', 'collab', 'book', 'contact'];
+  var navSectionIds = ['home', 'about', 'content', 'collab', 'faq', 'contact'];
   var navObserver = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
@@ -125,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })
     .catch(err => console.error('Error fetching YouTube videos:', err));
 
-  var tickerWords = ['Daily Vlogs', 'Tech Reviews', 'Bengaluru Life', 'Real Stories'];
+  var tickerWords = ['Daily Vlogs', 'Travel & Food', 'Bengaluru Life', 'Real Stories'];
   var tickerTrack = document.getElementById('tickerTrack');
   var tickerHTML = '';
   for (var t = 0; t < 6; t++) {
