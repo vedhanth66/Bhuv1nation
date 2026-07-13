@@ -116,31 +116,105 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ============================= FILMSTRIP + TICKER ============================= */
   var filmTrack = document.getElementById('filmstripTrack');
-  var rssUrl = 'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.youtube.com%2Ffeeds%2Fvideos.xml%3Fchannel_id%3DUCank4O_VJHoj_PtjzAIFcoA';
   
+  // Backup list of vlogs from Bhuv1nation's channel to ensure the section is never blank
+  var backupVideos = [
+    {
+      title: "😱 Mulbagal Jatre 2026 🔥 ನಾನ್‌ವೆಜ್‌ಗೆ ಲಕ್ಷಾಂತರ ಜನ! | Kannada Vlog",
+      videoId: "JLR5xf-gf_I"
+    },
+    {
+      title: "They Made Me Drink COW PEE(ಗೋಮೂತ್ರ) in a Juice Challenge 😭 (Gone TOO FAR!) | PART-1",
+      videoId: "oi1sSDFVvfA"
+    },
+    {
+      title: "Pizza ಹೀಗೂ ಇರುತ್ತಾ 😱? | ತರ್ಲೆ boy's ಸಹವಾಸ ನೋಡ್ರಪ್ಪಾ!!!!!🤣😜",
+      videoId: "f1uToayevk8"
+    }
+  ];
+
   function dots(n) { return '<span></span>'.repeat(n); }
-  function filmCardHTML(item) {
-    var imgUrl = item.thumbnail || '';
-    return '<a class="film-card" href="' + item.link + '" target="_blank" rel="noopener" style="background-image:url('+imgUrl+'); background-size: cover; background-position: center;">' +
-      '<div class="film-card-bg" style="background:rgba(0,0,0,0.4);"></div>' +
-      '<div class="sprocket top">' + dots(6) + '</div>' +
-      '<div class="sprocket bottom">' + dots(6) + '</div>' +
-      '<div class="play-badge"><svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5Z"/></svg></div>' +
-      '<div class="caption" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.8);">' + item.title + '</div>' +
-      '</a>';
+  
+  function renderFilmstrip(videoList) {
+    if (!filmTrack) return;
+    var filmHTML = videoList.map(function(item) {
+      var videoId = item.videoId;
+      var title = escapeHTML(item.title);
+      var link = 'https://www.youtube.com/watch?v=' + videoId;
+      var imgUrl = 'https://i.ytimg.com/vi/' + videoId + '/mqdefault.jpg';
+      
+      return '<a class="film-card" href="' + link + '" target="_blank" rel="noopener" style="background-image:url(' + imgUrl + '); background-size: cover; background-position: center;">' +
+        '<div class="film-card-bg" style="background:rgba(0,0,0,0.45);"></div>' +
+        '<div class="sprocket top">' + dots(6) + '</div>' +
+        '<div class="sprocket bottom">' + dots(6) + '</div>' +
+        '<div class="play-badge"><svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5Z"/></svg></div>' +
+        '<div class="caption" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.85);">' + title + '</div>' +
+        '</a>';
+    }).join('');
+    
+    // Duplicate the strip to create the infinite carousel effect
+    filmTrack.innerHTML = filmHTML + filmHTML;
+    filmTrack.classList.add('is-animated');
   }
 
-  fetch(rssUrl)
-    .then(res => res.json())
-    .then(data => {
-      if (data && data.items) {
-        var videos = data.items.slice(0, 8);
-        var filmHTML = videos.map(filmCardHTML).join('');
-        filmTrack.innerHTML = filmHTML + filmHTML;
-        filmTrack.classList.add('is-animated');
-      }
-    })
-    .catch(err => console.error('Error fetching YouTube videos:', err));
+  // Multi-tier endpoints (using healthy public Invidious instances, falling back to rss2json and finally hardcoded backup)
+  var apiEndpoints = [
+    'https://inv.zoomerville.com/api/v1/channels/UCank4O_VJHoj_PtjzAIFcoA/videos',
+    'https://invidious.no-logs.com/api/v1/channels/UCank4O_VJHoj_PtjzAIFcoA/videos',
+    'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.youtube.com%2Ffeeds%2Fvideos.xml%3Fchannel_id%3DUCank4O_VJHoj_PtjzAIFcoA'
+  ];
+
+  function tryFetchVideos(index) {
+    if (index >= apiEndpoints.length) {
+      console.warn('All video API endpoints failed. Loading backup videos.');
+      renderFilmstrip(backupVideos);
+      return;
+    }
+    
+    var url = apiEndpoints[index];
+    fetch(url)
+      .then(function(res) {
+        if (!res.ok) throw new Error('HTTP status ' + res.status);
+        return res.json();
+      })
+      .then(function(data) {
+        var videos = [];
+        if (data && data.videos && data.videos.length > 0) {
+          // Format from Invidious API
+          videos = data.videos.slice(0, 8).map(function(v) {
+            return { title: v.title, videoId: v.videoId };
+          });
+        } else if (data && data.items && data.items.length > 0) {
+          // Format from rss2json
+          videos = data.items.slice(0, 8).map(function(item) {
+            var videoId = '';
+            if (item.guid && item.guid.indexOf('yt:video:') === 0) {
+              videoId = item.guid.replace('yt:video:', '');
+            } else {
+              var match = item.link ? item.link.match(/(?:v=|\/shorts\/|embed\/)([^&?\/]+)/) : null;
+              if (match) {
+                videoId = match[1];
+              } else {
+                videoId = item.guid || '';
+              }
+            }
+            return { title: item.title, videoId: videoId };
+          });
+        }
+        
+        if (videos.length > 0) {
+          renderFilmstrip(videos);
+        } else {
+          throw new Error('No videos found in response');
+        }
+      })
+      .catch(function(err) {
+        console.warn('API endpoint failed: ' + url, err);
+        tryFetchVideos(index + 1);
+      });
+  }
+
+  tryFetchVideos(0);
 
   var tickerWords = ['Daily Vlogs', 'Travel & Food', 'Bengaluru Life', 'Real Stories'];
   var tickerTrack = document.getElementById('tickerTrack');
