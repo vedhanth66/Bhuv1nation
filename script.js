@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ============================= NAV: active link on scroll ============================= */
   var navAnchors = navLinksEl.querySelectorAll('a');
-  var navSectionIds = ['home', 'about', 'content', 'collab', 'faq', 'contact'];
+  var navSectionIds = ['home', 'about', 'content', 'collab', 'contact'];
   var navObserver = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
@@ -248,12 +248,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }, { threshold: 0.14 });
   revealEls.forEach(function (el) { revealObserver.observe(el); });
 
-  /* ============================= FAQ ACCORDION ============================= */
-  document.querySelectorAll('.faq-q').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      btn.closest('.faq-item').classList.toggle('open');
-    });
-  });
 
   /* ============================= TOAST ============================= */
   var toastTimer;
