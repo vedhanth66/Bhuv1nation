@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   tryFetchVideos(0);
 
-  var tickerWords = ['Daily Vlogs', 'Travel & Food', 'Bengaluru Life', 'Real Stories'];
+  var tickerWords = ['Vlogs', 'Travel & Food', 'Bengaluru Life', 'Real Stories', 'Unlimited Entertainment'];
   var tickerTrack = document.getElementById('tickerTrack');
   var tickerHTML = '';
   for (var t = 0; t < 6; t++) {
