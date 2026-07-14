@@ -47,7 +47,7 @@ To stop a running server, press `Ctrl + C` in the terminal.
    section and the About section). Replace the placeholder `<div class="portrait-placeholder">`
    with `<img src="your-photo.jpg" class="portrait-photo" alt="Bhuvan Bhuv1nation">` and
    place your photo file in this folder.
-2. **Contact email** currently `collab@bhuv1nation.com` (search and replace in `index.html`).
+2. **Contact email** currently `bhuv1nation@gmail.com` (search and replace in `index.html`).
 3. **Instagram / X links** currently placeholder `href="#"` in the footer and Contact section.
 4. **Admin passcode** in `script.js`, search for `ADMIN_PASSCODE = 'bhuv2026'` and change it
    to something private. This unlocks the "Creator Login" dashboard in the footer, which lists

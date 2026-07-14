@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('collabType').value = '';
       }).catch(error => {
         showToast('Error sending message. Opening email client instead.');
-        window.open('mailto:collab@bhuv1nation.com', '_blank');
+        window.open('mailto:bhuv1nation@gmail.com', '_blank');
       }).finally(() => {
         submitBtn.disabled = false; 
         submitBtn.innerHTML = originalLabel;
