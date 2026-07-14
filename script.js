@@ -165,64 +165,31 @@ document.addEventListener('DOMContentLoaded', function () {
     filmTrack.classList.add('is-animated');
   }
 
-  // Multi-tier endpoints (using healthy public Invidious instances, falling back to rss2json and finally hardcoded backup)
-  var apiEndpoints = [
-    'https://inv.zoomerville.com/api/v1/channels/UCank4O_VJHoj_PtjzAIFcoA/videos',
-    'https://invidious.no-logs.com/api/v1/channels/UCank4O_VJHoj_PtjzAIFcoA/videos',
-    'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.youtube.com%2Ffeeds%2Fvideos.xml%3Fchannel_id%3DUCank4O_VJHoj_PtjzAIFcoA'
-  ];
-
-  function tryFetchVideos(index) {
-    if (index >= apiEndpoints.length) {
-      console.warn('All video API endpoints failed. Loading backup videos.');
-      renderFilmstrip(backupVideos);
-      return;
-    }
+  async function tryFetchVideos() {
+    const channelId = 'UCank4O_VJHoj_PtjzAIFcoA';
+    // Using a highly reliable Invidious instance to avoid CORS and 500 errors in console
+    const primaryEndpoint = 'https://invidious.projectsegfau.lt/api/v1/channels/' + channelId + '/videos';
     
-    var url = apiEndpoints[index];
-    fetch(url)
-      .then(function(res) {
-        if (!res.ok) throw new Error('HTTP status ' + res.status);
-        return res.json();
-      })
-      .then(function(data) {
-        var videos = [];
-        if (data && data.videos && data.videos.length > 0) {
-          // Format from Invidious API
-          videos = data.videos.slice(0, 8).map(function(v) {
-            return { title: v.title, videoId: v.videoId };
-          });
-        } else if (data && data.items && data.items.length > 0) {
-          // Format from rss2json
-          videos = data.items.slice(0, 8).map(function(item) {
-            var videoId = '';
-            if (item.guid && item.guid.indexOf('yt:video:') === 0) {
-              videoId = item.guid.replace('yt:video:', '');
-            } else {
-              var match = item.link ? item.link.match(/(?:v=|\/shorts\/|embed\/)([^&?\/]+)/) : null;
-              if (match) {
-                videoId = match[1];
-              } else {
-                videoId = item.guid || '';
-              }
-            }
-            return { title: item.title, videoId: videoId };
-          });
-        }
-        
-        if (videos.length > 0) {
-          renderFilmstrip(videos);
-        } else {
-          throw new Error('No videos found in response');
-        }
-      })
-      .catch(function(err) {
-        console.warn('API endpoint failed: ' + url, err);
-        tryFetchVideos(index + 1);
-      });
+    try {
+      const response = await fetch(primaryEndpoint, { cache: 'no-cache' });
+      if (!response.ok) throw new Error('API Error');
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        // Successfully fetched automated videos!
+        renderFilmstrip(data);
+      } else {
+        throw new Error('No videos found');
+      }
+    } catch (err) {
+      // Fallback to backup videos gracefully if the API is unreachable
+      console.warn('Could not fetch latest videos, loading backups instead.');
+      renderFilmstrip(backupVideos);
+    }
   }
 
-  tryFetchVideos(0);
+  // Start the automated fetch
+  tryFetchVideos();
 
   var tickerWords = ['Vlogs', 'Travel & Food', 'Bengaluru Life', 'Real Stories', 'Unlimited Entertainment'];
   var tickerTrack = document.getElementById('tickerTrack');
