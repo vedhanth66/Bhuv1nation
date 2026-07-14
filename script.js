@@ -136,8 +136,16 @@ document.addEventListener('DOMContentLoaded', function () {
   function dots(n) { return '<span></span>'.repeat(n); }
   
   function renderFilmstrip(videoList) {
-    if (!filmTrack) return;
-    var filmHTML = videoList.map(function(item) {
+    if (!filmTrack || !videoList || videoList.length === 0) return;
+    
+    // Ensure we have at least 12 cards in one half so the carousel is wider than the screen width
+    var repetitionCount = Math.ceil(12 / videoList.length);
+    var oneHalfList = [];
+    for (var r = 0; r < repetitionCount; r++) {
+      oneHalfList = oneHalfList.concat(videoList);
+    }
+
+    var filmHTML = oneHalfList.map(function(item) {
       var videoId = item.videoId;
       var title = escapeHTML(item.title);
       var link = 'https://www.youtube.com/watch?v=' + videoId;
