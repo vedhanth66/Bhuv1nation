@@ -434,6 +434,14 @@ header.scrolled .nav-burger{background:var(--white);border-color:rgba(124,99,192
   box-shadow: var(--shadow-md);
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
+#fountainCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
 #avatarCanvas:active {
   cursor: grabbing;
 }

@@ -85,11 +85,11 @@
         <span class="pill-static">🔔 New vlogs weekly</span>
       </div>
     </div>
-    <div class="hero-portrait-wrap" id="avatar3d-wrap" style="display: none !important;">
+    <div class="hero-portrait-wrap" id="avatar3d-wrap">
       <!-- Hidden 3D Canvas (Not deleted, just hidden) -->
       <canvas id="avatarCanvas" style="display: none;"></canvas>
-      <!-- Static Avatar Image -->
-      <img src="avatar.jpg" alt="Bhuvan Bhuv1nation" class="hero-portrait-img">
+      <!-- Particle Fountain Canvas -->
+      <canvas id="fountainCanvas"></canvas>
     </div>
   </div>
   <a href="#peek" class="scroll-cue">
@@ -367,5 +367,6 @@
 
 <script src="script.js"></script>
 <!-- 3D Toy hidden per client request: <script src="avatar3d.js"></script> -->
+<script src="fountain.js"></script>
 </body>
 </html>
