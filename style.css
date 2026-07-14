@@ -426,6 +426,14 @@ header.scrolled .nav-burger{background:var(--white);border-color:rgba(124,99,192
   height: 100%;
   cursor: grab;
 }
+.hero-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 28px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
 #avatarCanvas:active {
   cursor: grabbing;
 }
