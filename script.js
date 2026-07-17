@@ -167,23 +167,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function tryFetchVideos() {
     const channelId = 'UCank4O_VJHoj_PtjzAIFcoA';
-    // Using a highly reliable Invidious instance to avoid CORS and 500 errors in console
-    const primaryEndpoint = 'https://invidious.projectsegfau.lt/api/v1/channels/' + channelId + '/videos';
+    // Using RSS to JSON converter as a reliable fallback for YouTube API
+    const primaryEndpoint = 'https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId;
     
     try {
       const response = await fetch(primaryEndpoint, { cache: 'no-cache' });
       if (!response.ok) throw new Error('API Error');
-      const data = await response.json();
+      const json = await response.json();
       
-      if (data && data.length > 0) {
+      if (json && json.items && json.items.length > 0) {
         // Successfully fetched automated videos!
-        renderFilmstrip(data);
+        const fetchedVideos = json.items.map(function(item) {
+          var videoId = item.link.split('v=')[1];
+          if (!videoId && item.guid) {
+            var parts = item.guid.split(':');
+            videoId = parts[parts.length - 1];
+          }
+          if (videoId && videoId.includes('&')) {
+            videoId = videoId.split('&')[0];
+          }
+          return {
+            title: item.title,
+            videoId: videoId
+          };
+        }).filter(function(v) { return !!v.videoId; });
+        
+        if (fetchedVideos.length > 0) {
+          renderFilmstrip(fetchedVideos);
+        } else {
+          throw new Error('No valid videos parsed');
+        }
       } else {
         throw new Error('No videos found');
       }
     } catch (err) {
       // Fallback to backup videos gracefully if the API is unreachable
-      console.warn('Could not fetch latest videos, loading backups instead.');
+      console.warn('Could not fetch latest videos, loading backups instead.', err);
       renderFilmstrip(backupVideos);
     }
   }
